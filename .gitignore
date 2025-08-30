@@ -1,0 +1,25 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# pyenv
+.python-version
+
+# Byte-compiled / optimized / DLL files
+__pycache__
+*.pyc
+.mypy_cache/
+.pytest_cache/
+.cache/
+.ipynb_checkpoints/
+build/
+dist/
+.DS_Store
+
+# temporary files
+HealthMate_Proposal.md

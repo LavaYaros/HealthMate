@@ -1,0 +1,4 @@
+pydantic_settings
+langchain
+langchain_community
+openai
