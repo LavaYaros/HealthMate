@@ -1,6 +1,11 @@
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 import os
+
+
+load_dotenv()
+
 
 
 class Settings(BaseSettings):
@@ -8,7 +13,7 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     LLM_MODEL: str = "gpt-4o-mini"
-    API_KEY: str = os.getenv("OPENAI_API_KEY", None)
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", None)
     LLM_TEMPERATURE: float = 0.2
     LLM_TOP_P: float = 0.95
 
