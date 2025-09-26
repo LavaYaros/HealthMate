@@ -7,25 +7,31 @@ import os
 load_dotenv()
 
 
-
 class Settings(BaseSettings):
     """Settings for the application."""
 
     # LLM Configuration
+
+    PROVIDER: str = os.getenv("PROVIDER", "openai")  # 'bedrock', or 'openai'
+
     LLM_MODEL: str = "gpt-4o-mini"
     openai_api_key: str = os.getenv("OPENAI_API_KEY", None)
     LLM_TEMPERATURE: float = 0.2
     LLM_TOP_P: float = 0.95
+
+    MODEL_ID: str = os.getenv("MODEL_ID")
+    BEDROCK_REGION: str = os.getenv("BEDROCK_REGION")
+    BEDROCK_ACCESS_KEY: str = os.getenv("BEDROCK_ACCESS_KEY")
+    BEDROCK_SECRET_KEY: str = os.getenv("BEDROCK_SECRET_KEY")
 
     # RAG Configuration
     TOP_K: int = 3
     DEBUG_MODE: bool = True # Set to True to print debug information to console
 
     # Memory configuration
-    MEMORY_TOKEN_LIMIT: int = 512 # Amount of tokens after which conversation is summarized
-    MAX_MESSAGES: int = 4 # Amount of messages after which conversation is summarized
-    KEEP_RECENT_MESSAGES: int = 2 # Amount of recent messages to keep after summarization
-
+    MAX_MESSAGES_FOR_SUMMARIZATION: int = 6 # Amount of messages after which conversation is summarized
+    MAX_MESSAGES_FOR_MEMORY: int = 20 # Amount of messages to keep in memory
+    MEMORY_PATH: str = "src/memory/storage/" # Path to store conversation memory files
     class Config:
         env_file = ".env"
 
