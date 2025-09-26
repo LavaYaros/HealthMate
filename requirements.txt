@@ -3,3 +3,9 @@ langgraph
 langchain
 langchain-openai
 openai
+gradio
+websockets
+requests
+fastapi
+boto3
+langchain_aws
