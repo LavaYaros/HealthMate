@@ -12,21 +12,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.config.settings import get_settings
+from src.config.llm_object import LLMObject
 from src.prompts.system_prompts import INSTRUCTOR_PROMPT, CHATTER_PROMPT
 from src.memory.graph_state import GraphState
 from langgraph.graph import StateGraph, START, END
-from langchain.chat_models import init_chat_model
 from typing import TypedDict, Annotated, Optional
 
 
-# --- LangGraph + LangChain integration ---
+# --- LangGraph + LLMObject integration ---
 settings = get_settings()
-llm = init_chat_model(
-    settings.LLM_MODEL,
-    api_key=settings.openai_api_key,
-    temperature=settings.LLM_TEMPERATURE,
-    top_p=settings.LLM_TOP_P,
-)
+llm = LLMObject()
 
 
 class State(GraphState):
@@ -44,15 +39,9 @@ def rag_desider(state: State):
         {"role": "system", "content": "You are a classifier. Answer Yes if the user's message requires medical instructions (e.g., injury, medical kit, first aid, symptoms, emergency, etc.), and No if it is unrelated to medicine."},
         {"role": "user", "content": last_message["content"]},
     ]
-    # Use a deterministic LLM for classification
-    llm_zero_temp = init_chat_model(
-        settings.LLM_MODEL,
-        api_key=settings.openai_api_key,
-        temperature=0,
-        top_p=settings.LLM_TOP_P,
-        max_tokens=10,
-    )
-    reply = llm_zero_temp.invoke(messages)
+    # Use a deterministic LLM for classification (temperature=0)
+    llm_classifier = LLMObject(temperature=0)
+    reply = llm_classifier.invoke(messages)
     answer = reply.content.strip().split()[0]  # Take first word (Yes/No)
     
     # Update state with classification
