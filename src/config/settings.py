@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     BEDROCK_ACCESS_KEY: str = os.getenv("BEDROCK_ACCESS_KEY")
     BEDROCK_SECRET_KEY: str = os.getenv("BEDROCK_SECRET_KEY")
 
+    EMBEDDING_MODEL: str = "text-embedding-3-small"  # OpenAI embedding model
+
     # RAG Configuration
     TOP_K: int = 3
     DEBUG_MODE: bool = True # Set to True to print debug information to console

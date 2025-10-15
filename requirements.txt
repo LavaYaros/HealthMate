@@ -9,3 +9,8 @@ requests
 fastapi
 boto3
 langchain_aws
+chromadb
+langchain-chroma
+langchain-community
+pypdf
+cryptography
