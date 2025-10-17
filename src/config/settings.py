@@ -27,7 +27,10 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: str = "text-embedding-3-small"  # OpenAI embedding model
 
     # RAG Configuration
-    TOP_K: int = 3
+    TOP_K: int = 5  # Number of passages to retrieve
+    SIMILARITY_THRESHOLD: float = 0.5  # Minimum similarity score (0-1) for relevance filtering
+    DEDUP_THRESHOLD: float = 0.85  # Text similarity threshold for deduplication (0-1)
+    MAX_CONTEXT_TOKENS: int = 2000  # Maximum tokens for context passed to LLM
     DEBUG_MODE: bool = True # Set to True to print debug information to console
 
     # Memory configuration
