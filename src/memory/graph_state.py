@@ -4,7 +4,8 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, TypedDict
+from typing import Dict, List, Optional
+from typing_extensions import TypedDict
 from typing_extensions import Annotated
 
 from src.config.settings import get_settings
