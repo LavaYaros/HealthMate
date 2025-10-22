@@ -22,7 +22,7 @@ logger = setup_logger(__name__)
 stt = get_stt()
 
 # Use environment variable for API endpoint
-API_HOST = os.getenv("API_HOST", "localhost")
+API_HOST = os.getenv("API_HOST", "127.0.0.1")
 API_BASE = f"http://{API_HOST}:8000"
 FASTAPI_ENDPOINT = f"{API_BASE}/v1/chat/completions"
 
