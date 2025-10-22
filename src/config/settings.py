@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 import os
+from typing import Optional
 
 
 load_dotenv()
@@ -15,16 +16,16 @@ class Settings(BaseSettings):
     PROVIDER: str = os.getenv("PROVIDER", "openai")  # 'bedrock', or 'openai'
 
     LLM_MODEL: str = "gpt-4o-mini"
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", None)
+    openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY", None)
     LLM_TEMPERATURE: float = 0.2
     LLM_TOP_P: float = 0.95
 
-    MODEL_ID: str = os.getenv("MODEL_ID")
-    BEDROCK_REGION: str = os.getenv("BEDROCK_REGION")
-    BEDROCK_ACCESS_KEY: str = os.getenv("BEDROCK_ACCESS_KEY")
-    BEDROCK_SECRET_KEY: str = os.getenv("BEDROCK_SECRET_KEY")
+    MODEL_ID: Optional[str] = os.getenv("MODEL_ID")
+    BEDROCK_REGION: Optional[str] = os.getenv("BEDROCK_REGION")
+    BEDROCK_ACCESS_KEY: Optional[str] = os.getenv("BEDROCK_ACCESS_KEY")
+    BEDROCK_SECRET_KEY: Optional[str] = os.getenv("BEDROCK_SECRET_KEY")
 
-    EMBEDDING_MODEL: str = "text-embedding-3-small"  # OpenAI embedding model
+    EMBEDDING_MODEL: Optional[str] = "text-embedding-3-small"  # OpenAI embedding model
 
     WHISPER_MODEL: str = "whisper-1"
     
