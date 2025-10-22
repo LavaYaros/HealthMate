@@ -26,6 +26,8 @@ class Settings(BaseSettings):
 
     EMBEDDING_MODEL: str = "text-embedding-3-small"  # OpenAI embedding model
 
+    WHISPER_MODEL: str = "whisper-1"
+    
     # RAG Configuration
     TOP_K: int = 5  # Number of passages to retrieve
     SIMILARITY_THRESHOLD: float = 0.5  # Minimum similarity score (0-1) for relevance filtering

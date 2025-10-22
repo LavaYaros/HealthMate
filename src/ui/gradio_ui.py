@@ -14,9 +14,12 @@ import websockets
 import gradio as gr
 from functools import wraps
 
+from src.audio.stt import get_stt
 from src.logging.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+stt = get_stt()
 
 # Use environment variable for API endpoint
 API_HOST = os.getenv("API_HOST", "localhost")
@@ -351,6 +354,22 @@ def new_chat(chat_titles, new_chat_name, active_conv_id, sessions, chat_ids):
     current_sessions = sessions.get(active_conv_id, [])
     return chat_titles, active_conv_id, gr.update(), current_sessions, new_chat_name, sessions, chat_ids
 
+def handle_audio_input(audio_path):
+    if audio_path:
+        return stt.transcribe(audio_path)
+    return ""
+
+async def handle_audio_and_submit(audio_path, chatbot, sessions, active, chat_ids):
+    if audio_path:
+        transcribed = handle_audio_input(audio_path)
+        if transcribed:
+            async for result in submit_stream(transcribed, chatbot, sessions, active, chat_ids):
+                yield result
+        else:
+            yield chatbot, "", sessions
+    else:
+        yield chatbot, "", sessions
+
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("""# HealthMate - Your AI First Aid Assistant
     *I am here to guide you through home-based first aid situations. Note: Always call emergency services for life-threatening conditions.*
@@ -446,6 +465,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                     scale=10,
                     container=False
                 )
+                audio_input = gr.Audio(sources=["microphone"], type="filepath", label="Voice Input")
                 send = gr.Button(
                     "Send",
                     scale=1,
@@ -484,4 +504,9 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
               [active_conv_id], 
               [chatbot])
 
-demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    audio_input.change(handle_audio_and_submit, 
+                       [audio_input, chatbot, sessions, active, chat_ids], 
+                       [chatbot, txt, sessions])
+
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
