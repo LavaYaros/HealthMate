@@ -465,13 +465,14 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                     scale=10,
                     container=False
                 )
-                audio_input = gr.Audio(sources=["microphone"], type="filepath", label="Voice Input")
                 send = gr.Button(
                     "Send",
                     scale=1,
                     min_width=100,
                     variant="primary"
                 )
+            
+            audio_input = gr.Audio(sources=["microphone"], type="filepath", label="Voice Input")
 
     # Wire up the components
     txt.submit(submit_stream, [txt, chatbot, sessions, active, chat_ids], [chatbot, txt, sessions])
