@@ -33,7 +33,7 @@ app = FastAPI(
 )
 
 # Include websocket router
-from .websocket_api import router as websocket_router
+from src.config.websocket_api import router as websocket_router
 app.include_router(websocket_router)
 
 class ChatRequest(BaseModel):
