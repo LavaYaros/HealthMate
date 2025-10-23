@@ -2,9 +2,11 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import re
 import asyncio
 import json
+import base64
 from src.logging.logger import setup_logger
 from src.rag.pipeline import generate
 from src.memory.graph_state import LangGraphStateManager
+from src.audio.tts import text_to_speech
 
 logger = setup_logger(__name__)
 state_manager = LangGraphStateManager()
@@ -82,6 +84,21 @@ async def websocket_chat(websocket: WebSocket):
                     await asyncio.sleep(0.03)
                 
                 logger.info(f"WebSocket: sent {token_count} tokens total")
+                
+                # Generate TTS audio for the complete response
+                try:
+                    logger.info("WebSocket: generating TTS audio for response")
+                    audio_bytes = text_to_speech(assistant_reply, use_medical_formatting=True)
+                    
+                    # Encode audio as base64 for transmission
+                    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                    
+                    # Send audio data as a special message
+                    await websocket.send_text(f"__AUDIO__:{audio_base64}")
+                    logger.info(f"WebSocket: sent TTS audio ({len(audio_bytes)} bytes)")
+                except Exception as audio_error:
+                    logger.error(f"WebSocket: TTS generation failed: {audio_error}")
+                    # Continue without audio - don't block the response
                 
                 # send a final sentinel to indicate completion
                 await websocket.send_text("__DONE__")
