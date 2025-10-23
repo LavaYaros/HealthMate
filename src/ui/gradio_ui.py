@@ -13,6 +13,8 @@ import requests
 import websockets
 import gradio as gr
 from functools import wraps
+import base64
+import tempfile
 
 from src.audio.stt import get_stt
 from src.logging.logger import setup_logger
@@ -76,7 +78,7 @@ async def submit_stream(message, chat_hist, sessions, active, chat_ids):
 
     # Show user message while waiting for response
     preview_session = current_session + [{"role": "user", "content": message}]
-    yield messages_to_gradio_history(preview_session), "", sessions
+    yield messages_to_gradio_history(preview_session), "", sessions, None
 
     try:
         # Connect and send message
@@ -90,6 +92,8 @@ async def submit_stream(message, chat_hist, sessions, active, chat_ids):
             
             # Stream response
             response_so_far = ""
+            audio_path = None
+            
             while True:
                 tok = await ws.recv()
                 
@@ -101,32 +105,49 @@ async def submit_stream(message, chat_hist, sessions, active, chat_ids):
                             final_state = r.json().get("messages", [])
                             last_message_complete = final_state[-1]['content'] == response_so_far  # Ensure last message is complete
                             if last_message_complete:
-                                yield messages_to_gradio_history(final_state), "", sessions
+                                yield messages_to_gradio_history(final_state), "", sessions, audio_path
                             else:
-                                logger.warning(f"UI: final message content mismatch, using streamed content \n{final_state[-1]['content']} \nvs \n{response_so_far}")
+                                logger.warning(f"UI: final message content mismatch, using streamed content")
                     except Exception as e:
                         logger.error(f"UI: failed to get final state: {e}")
                     break
+                
+                if tok.startswith("__AUDIO__:"):
+                    # Extract and decode audio data
+                    try:
+                        audio_base64 = tok.replace("__AUDIO__:", "")
+                        audio_bytes = base64.b64decode(audio_base64)
+                        
+                        # Save to temporary file
+                        temp_audio = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+                        temp_audio.write(audio_bytes)
+                        temp_audio.close()
+                        audio_path = temp_audio.name
+                        
+                        logger.info(f"UI: received audio ({len(audio_bytes)} bytes), saved to {audio_path}")
+                    except Exception as e:
+                        logger.error(f"UI: failed to decode audio: {e}")
+                    continue
                     
                 if tok.startswith("__ERROR__:"):
                     error_msg = tok.replace("__ERROR__:", "").strip()
                     logger.error(f"UI: received error: {error_msg}")
                     yield messages_to_gradio_history(preview_session + [
                         {"role": "assistant", "content": f"[Error: {error_msg}]"}
-                    ]), "", sessions
+                    ]), "", sessions, None
                     return
 
                 # Show streaming progress
                 response_so_far += tok
                 yield messages_to_gradio_history(preview_session + [
                     {"role": "assistant", "content": response_so_far}
-                ]), "", sessions
+                ]), "", sessions, audio_path
                 
     except Exception as e:
         logger.exception("UI: WebSocket error: %s", e)
         yield messages_to_gradio_history(preview_session + [
             {"role": "assistant", "content": f"[Connection Error: {str(e)}]"}
-        ]), "", sessions
+        ]), "", sessions, None
 
 
 def load_chat_history(conversation_id):
@@ -366,9 +387,9 @@ async def handle_audio_and_submit(audio_path, chatbot, sessions, active, chat_id
             async for result in submit_stream(transcribed, chatbot, sessions, active, chat_ids):
                 yield result
         else:
-            yield chatbot, "", sessions
+            yield chatbot, "", sessions, None
     else:
-        yield chatbot, "", sessions
+        yield chatbot, "", sessions, None
 
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("""# HealthMate - Your AI First Aid Assistant
@@ -473,10 +494,18 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                 )
             
             audio_input = gr.Audio(sources=["microphone"], type="filepath", label="Voice Input")
+            
+            # Audio output for TTS responses
+            audio_output = gr.Audio(
+                label="🔊 Voice Response",
+                autoplay=True,
+                visible=True,
+                show_label=True
+            )
 
     # Wire up the components
-    txt.submit(submit_stream, [txt, chatbot, sessions, active, chat_ids], [chatbot, txt, sessions])
-    send.click(submit_stream, [txt, chatbot, sessions, active, chat_ids], [chatbot, txt, sessions])
+    txt.submit(submit_stream, [txt, chatbot, sessions, active, chat_ids], [chatbot, txt, sessions, audio_output])
+    send.click(submit_stream, [txt, chatbot, sessions, active, chat_ids], [chatbot, txt, sessions, audio_output])
 
     new_btn.click(new_chat, 
                   [chat_titles, new_chat_name, active_conv_id, sessions, chat_ids], 
@@ -507,7 +536,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
     audio_input.change(handle_audio_and_submit, 
                        [audio_input, chatbot, sessions, active, chat_ids], 
-                       [chatbot, txt, sessions])
+                       [chatbot, txt, sessions, audio_output])
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
