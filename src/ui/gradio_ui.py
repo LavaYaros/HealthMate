@@ -469,11 +469,10 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
             del_btn = gr.Button("🗑️ Delete Case", variant="stop")
 
         with gr.Column(scale=1):
-            gr.Markdown("""### HealthMate Assistant
-            *Describe your first aid situation, and I'll guide you through the appropriate steps.*""")
+            gr.Markdown("""### HealthMate Assistant""")
             
             chatbot = gr.Chatbot(
-                height=500, 
+                height=300, 
                 show_label=False,
                 type="messages",
                 avatar_images=["👤", "🩺"],
@@ -484,7 +483,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                 txt = gr.Textbox(
                     show_label=False,
                     placeholder="Describe the first aid situation...",
-                    lines=2,
+                    lines=1,
                     scale=10,
                     container=False
                 )
