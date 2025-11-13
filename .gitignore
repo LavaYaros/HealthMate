@@ -25,7 +25,6 @@ med_sources/
 chroma_db/
 
 # temporary files
-.github/
 .vscode/
 HealthMate_Proposal.md
 info_gather_agent_wo_api_key.py
