@@ -125,6 +125,8 @@ async def submit_stream(message, chat_hist, sessions, active, chat_ids):
                         audio_path = temp_audio.name
                         
                         logger.info(f"UI: received audio ({len(audio_bytes)} bytes), saved to {audio_path}")
+                        logger.info(f"UI: audio file exists: {os.path.exists(audio_path)}")
+                        logger.info(f"UI: audio file size: {os.path.getsize(audio_path) if os.path.exists(audio_path) else 'N/A'}")
                     except Exception as e:
                         logger.error(f"UI: failed to decode audio: {e}")
                     continue

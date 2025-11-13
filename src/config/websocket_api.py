@@ -7,6 +7,7 @@ from src.logging.logger import setup_logger
 from src.rag.pipeline import generate
 from src.memory.graph_state import LangGraphStateManager
 from src.audio.tts import text_to_speech
+from src.config.settings import get_settings
 
 logger = setup_logger(__name__)
 state_manager = LangGraphStateManager()
@@ -88,6 +89,10 @@ async def websocket_chat(websocket: WebSocket):
                 # Generate TTS audio for the complete response
                 try:
                     logger.info("WebSocket: generating TTS audio for response")
+                    logger.info(f"WebSocket: TTS provider from settings: {get_settings().TTS_PROVIDER}")
+                    logger.info(f"WebSocket: AWS region: {get_settings().AWS_REGION}")
+                    logger.info(f"WebSocket: AWS key set: {bool(get_settings().AWS_ACCESS_KEY_ID)}")
+                    
                     audio_bytes = text_to_speech(assistant_reply, use_medical_formatting=True)
                     
                     # Encode audio as base64 for transmission
@@ -98,6 +103,7 @@ async def websocket_chat(websocket: WebSocket):
                     logger.info(f"WebSocket: sent TTS audio ({len(audio_bytes)} bytes)")
                 except Exception as audio_error:
                     logger.error(f"WebSocket: TTS generation failed: {audio_error}")
+                    logger.error(f"WebSocket: Full TTS error traceback:", exc_info=True)
                     # Continue without audio - don't block the response
                 
                 # send a final sentinel to indicate completion
